@@ -13,9 +13,7 @@ export const Resolvers = {
       });
     },
     user(_, args, ctx) {
-      /*
-       * This one is protected
-      **/
+      console.log('ctx.user: ', ctx.user.data.id, ' ==? ', args.id);
       if(ctx.user.data.id !== args.id)
         return null;
       return models.User.findOne(args);

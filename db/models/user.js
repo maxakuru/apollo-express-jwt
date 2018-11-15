@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema({
   	fake: 'name.firstName'
   },
   password: String,
-  tokens: Array,
+  refreshTokens: Array,
   profile: {
     name: { type: String, default: '' },
     gender: { type: String, default: '' },
@@ -94,8 +94,30 @@ UserSchema.methods.getGroups = function(cb) {
 };
 UserSchema.methods.getRecord = function(cb) {
 	let user = JSON.parse(JSON.stringify(this));
+	// redact the fields client shouldn't see
 	delete user['password'];
+	delete user['refreshTokens'];
+	delete user['resetPasswordToken'];
+	delete user['resetPasswordExpires'];
 	return user;
+};
+UserSchema.methods.getRecordForJWT = function() {
+  let user = JSON.parse(JSON.stringify(this));
+  return {
+    username: user.username,
+    email: user.email,
+    id: user.id
+  }
+};
+UserSchema.methods.addRefreshToken = function(token) {
+  if(typeof this.refreshTokens !== 'array') this.refreshTokens = [];
+  this.refreshTokens.push(token);
+};
+UserSchema.methods.removeRefreshToken = function(token) {
+   const index = this.refreshTokens.indexOf(token);
+    if(index > -1) {
+       this.refreshTokens.splice(index, 1);
+    }
 };
 UserSchema.methods.getFriends = function(cb) {
   return this.model('User').find({ _id: {$in: this.friends} }, cb);
